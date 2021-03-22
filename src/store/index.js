@@ -6,6 +6,8 @@ import createPersistedstate from 'vuex-persistedstate'
 import user from './modules/user'
 // 导入购物车信息
 import cart from './modules/cart'
+// 导入头部
+import category from './modules/category'
 // 创建vuex仓库并导出
 export default createStore({
   // 数据
@@ -20,7 +22,8 @@ export default createStore({
   // 不同模块
   modules: {
     user,
-    cart
+    cart,
+    category
   },
   // vuex计算属性
   getters: {
