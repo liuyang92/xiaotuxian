@@ -79,6 +79,7 @@ export default {
   opacity: 0;
   box-shadow: 0 0 5px #ccc;
   transition: all 0.2s 0.1s;
+  z-index: 99;
   ul {
     display: flex;
     flex-wrap: wrap;

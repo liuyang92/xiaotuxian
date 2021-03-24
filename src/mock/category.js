@@ -29,10 +29,24 @@ const getHeadCategroy = () => {
         picture: images[Mock.mock('@integer(0,7)')]
       }))
     }
+    // 9个子商品
+    const goods = []
+    for (let i = 0; i < 9; i++) {
+      goods.push(Mock.mock({
+        id: '@id',
+        name: '@ctitle(12,24)',
+        desc: '@ctitle(10,12)',
+        price: '@float(100,200,2,2)',
+        picture: images[Mock.mock('@integer(0,7)')]
+
+      }))
+    }
+    // 顶级分类
     return Mock.mock({
       id: '@id',
       name: item,
-      children
+      children,
+      goods
     })
   })
   return {
