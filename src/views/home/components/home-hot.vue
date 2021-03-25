@@ -1,10 +1,10 @@
 <template>
-  <HomePanel title="人气推荐" sub-title="人气爆款 不容错过">
+  <HomePanel title="人气推荐" sub-title="人气爆款 不容错过" ref="box">
     <transition name="fade">
-      <ul ref="pannel" class="goods-list" v-if="goods.length">
+      <ul ref="pannel" class="goods-list" v-if="goods && goods.length">
         <li v-for="item in goods" :key="item.id">
           <RouterLink to="/">
-            <img :src="item.picture" alt="" />
+            <img v-lazyload="item.picture" alt="" />
             <p class="name">{{ item.title }}</p>
             <p class="desc">{{ item.alt }}</p>
           </RouterLink>
@@ -19,18 +19,23 @@
 import HomePanel from './home-panel'
 import { findHot } from '@/api/home'
 import HomeSkeleton from './home-skeleton'
+import { useLazyData } from '@/hooks'
 export default {
   name: 'HomeHot',
   components: { HomePanel, HomeSkeleton },
-  data () {
-    return {
-      goods: []
-    }
-  },
-  async created () {
-    const data = await findHot()
-    this.goods = data.result
+  setup () {
+    const { target, result } = useLazyData(findHot)
+    return { box: target, goods: result }
   }
+  // data () {
+  //   return {
+  //     goods: []
+  //   }
+  // },
+  // async created () {
+  //   const data = await findHot()
+  //   this.goods = data.result
+  // }
 }
 </script>
 

@@ -49,13 +49,42 @@ const getHeadCategroy = () => {
       goods
     })
   })
+  // console.log(getHeadCategroy)
   return {
     msg: '获得头部数据分类成功',
     result: topCategoryList
   }
 }
-
 export default {
 // key===>生成数据的函数
-  headCategory: getHeadCategroy
+  headCategory: getHeadCategroy,
+  // 根据顶级分类区获取各个分类下推荐商品
+  topCategory: config => {
+    const children = []
+    for (let i = 0; i < 10; i++) {
+      const goods = []
+      for (let j = 0; j < 5; j++) {
+        goods.push(Mock.mock({
+          id: '@id',
+          name: '@ctitle(15,20)',
+          desc: '@ctitle(6,8)',
+          price: '@float(10,200,2,2)',
+          picture: `http://zhoushugang.gitee.io/erabbit-client-pc-static/uploads/kitchen_goods_${Mock.mock('@integer(1,8)')}.jpg`
+        }))
+      }
+      children.push(Mock.mock({
+        id: '@id',
+        name: '@ctitle(2,3)',
+        picture: `http://zhoushugang.gitee.io/erabbit-client-pc-static/uploads/img/category%20(${Mock.mock('@integer(1,10)')}).png`,
+        goods
+      }))
+    }
+    const result = Mock.mock({
+      id: '@id',
+      name: '@ctitle(2,3)',
+      children
+    })
+    return result
+  }
+
 }

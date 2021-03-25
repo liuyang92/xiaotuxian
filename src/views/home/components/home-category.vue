@@ -51,7 +51,7 @@
       >
         <li class="brand" v-for="item in currCategory.brands" :key="item.id">
           <RouterLink :to="`/category/:${item.id}`">
-            <img :src="item.picture" alt="" />
+            <img v-lazyload="item.picture" alt="" />
             <div class="info">
               <p class="place">
                 <i class="iconfont icon-dingwei"></i>{{ item.place }}
@@ -97,6 +97,7 @@ export default {
   async created () {
     const { result } = await findBrand(9)
     this.brand.brands = result
+    // console.log(result)
   },
   computed: {
     currCategory () {

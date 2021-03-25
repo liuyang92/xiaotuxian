@@ -1,12 +1,12 @@
 <template>
   <!-- 新鲜好物 -->
-  <HomePanel title="新鲜好物" sub-title="新鲜出炉 品质靠谱">
+  <HomePanel ref="target" title="新鲜好物" sub-title="新鲜出炉 品质靠谱">
     <template v-slot:right><XtxMore /></template>
     <transition name="fade">
-      <ul class="goods-list" v-if="goods.length">
+      <ul class="goods-list" v-if="goods && goods.length">
         <li v-for="item in goods" :key="item.id">
           <RouterLink to="/">
-            <img :src="item.picture" alt="" />
+            <img v-lazyload="item.picture" alt="" />
             <p class="name">{{ item.name }}</p>
             <p class="price">&yen;{{ item.price }}</p>
           </RouterLink>
@@ -21,13 +21,40 @@
 import { findNew } from '@/api/home'
 import HomePanel from './home-panel'
 import HomeSkeleton from './home-skeleton'
+// import { ref } from 'vue'
+// import { useIntersectionObserver } from '@vueuse/core'
+import { useLazyData } from '@/hooks'
 export default {
   name: 'HomeNew',
-  data () {
-    return {
-      goods: []
-    }
+  setup () {
+    // // 商品数据
+    // const goods = ref([])
+    // // findNew().then(data => {
+    // //   goods.value = data.result
+    // // })
+    // // 面板容器
+    // const target = ref(null)
+    // // 停止观察
+    // const { stop } = useIntersectionObserver(
+    //   target,
+    //   ([{ isIntersecting }], observerElement) => {
+    //     if (isIntersecting) {
+    //       stop()
+    //       // 进入可视区
+    //       findNew().then(data => {
+    //         goods.value = data.result
+    //       })
+    //     }
+    //   }
+    // )
+    const { target, result } = useLazyData(findNew)
+    return { goods: result, target }
   },
+  // data () {
+  //   return {
+  //     goods: []
+  //   }
+  // },
   components: {
     HomePanel,
     HomeSkeleton
@@ -41,7 +68,6 @@ export default {
 </script>
 
 <style lang="less" scoped>
-
 .goods-list {
   display: flex;
   justify-content: space-between;
