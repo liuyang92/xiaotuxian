@@ -34,6 +34,7 @@ const getPathMap = skus => {
     if (sku.inventory > 0) {
       // 得到sku的值数组
       const valueArr = sku.specs.map(spec => spec.valueName)
+      //   console.log(valueArr)
       //  得到sku值得子集
       const subSets = powerSet(valueArr)
       //   console.log(subSets)
@@ -48,6 +49,7 @@ const getPathMap = skus => {
       })
     }
   })
+  //   console.log(pathMap)
   return pathMap
 }
 export default {
@@ -59,6 +61,7 @@ export default {
     }
   },
   setup (prop) {
+    // console.log(prop)
     //   生成路径字典
     const pathMap = getPathMap(prop.goods.skus)
     // console.log(pathMap)
@@ -66,7 +69,10 @@ export default {
     const getSelectedVal = (specs) => {
       const arr = []
       specs.forEach(spec => {
+        //   查找选项里面是有有已经选中的,有返回true,没有返回false
         const selectedVal = spec.values.find(val => val.selected)
+        // const selectedVal = null
+        // arr里面放入结果,有的话放入name,没有的话放入undefined
         arr.push(selectedVal ? selectedVal.name : undefined)
       })
       return arr
@@ -89,6 +95,12 @@ export default {
     }
     // 初始化更新禁用状态
     updateItemStatus(prop.goods.specs)
+    // 选中状态切换函数
+    /**
+     * 1 假设每个按钮都有一个selected属性,为true时为选中,false时取消选中(初始化时都为false,全部不选中)
+     * 2 如果点击时已选中,则取消选中
+     * 3 否则点击时为没选中,则全部按钮都取消选中,然后给点击的按钮改为选中(true)
+     */
     const changeSku = (values, val) => {
       // 禁用状态,阻止行为
       if (val.disabled) return false
