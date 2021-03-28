@@ -5,14 +5,14 @@
       <dd>
         <template v-for="val in spec.values" :key="val.name">
           <img
-            :class="{ selected: val.selected }"
+            :class="{ selected: val.selected,disabled:val.disabled }"
             @click="changeSku(spec.values, val)"
             v-if="val.picture"
             :src="val.picture"
             alt=""
           />
           <span
-            :class="{ selected: val.selected }"
+            :class="{ selected: val.selected ,disabled:val.disabled}"
             @click="changeSku(spec.values, val)"
             v-else
             >{{ val.name }}</span
@@ -63,7 +63,7 @@ export default {
     const pathMap = getPathMap(prop.goods.skus)
     // console.log(pathMap)
     // 获得当前选中状态的值得数组,即使没选中也要准备好
-    const getSelectedVal = specs => {
+    const getSelectedVal = (specs) => {
       const arr = []
       specs.forEach(spec => {
         const selectedVal = spec.values.find(val => val.selected)
@@ -90,6 +90,8 @@ export default {
     // 初始化更新禁用状态
     updateItemStatus(prop.goods.specs)
     const changeSku = (values, val) => {
+      // 禁用状态,阻止行为
+      if (val.disabled) return false
       // 如果点击时已经选中,取反
       if (val.selected) {
         val.selected = false
