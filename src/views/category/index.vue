@@ -30,9 +30,9 @@
         <div class="head">
           <h3>- {{ item.name }} -</h3>
           <p class="tag">温暖柔软，品质之选</p>
-          <XtxMore />
+          <XtxMore :to="`/category/sub/${item.id}`"/>
         </div>
-        <div class="body">
+        <div class="body">{{item.children}}
           <GoodsItem
             v-for="goods in item.goods"
             :key="goods.id"
@@ -92,35 +92,7 @@ export default {
 </script>
 
 <style scoped lang="less">
-// 面包屑导航动画
-.pop {
-  &-leave {
-    &-from {
-      opacity: 1;
-      transform: none;
-    }
-    &-active {
-      transition: all 0.5s;
-    }
-    &-to {
-      opacity: 0;
-      transform: translateX(20px);
-    }
-  }
-  &-enter {
-    &-from {
-      opacity: 0;
-      transform: translateX(20px);
-    }
-    &-active {
-      transition: all 0.5s;
-    }
-    &-to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-}
+
 .top-category {
   h3 {
     font-size: 28px;

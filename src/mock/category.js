@@ -85,6 +85,65 @@ export default {
       children
     })
     return result
+  },
+
+  filter: config => {
+    const brands = []
+    for (let i = 0; i < 8; i++) {
+      brands.push(Mock.mock({
+        id: '@id',
+        name: '@ctitle(2,3)'
+      }))
+    }
+    const saleProperties = []
+    for (let i = 0; i < 4; i++) {
+      const properties = []
+      for (let j = 0; j < 8; j++) {
+        properties.push(Mock.mock({
+          id: '@id',
+          name: '@ctitle(2,3)'
+        }))
+      }
+      saleProperties.push(Mock.mock({
+        id: '@id',
+        name: '@ctitle(2,3)',
+        properties
+      }))
+    }
+    return {
+      msg: '查询二级分类筛选条件成功',
+      result: {
+        brands,
+        saleProperties
+      }
+    }
+  },
+  goods: config => {
+    const body = JSON.parse(config.body)
+    // console.log(body)
+    const pageSize = body.pageSize || 20
+    const page = body.page || 1
+    const list = []
+    if (page < 6) {
+      for (let i = 0; i < pageSize; i++) {
+        const num = Mock.mock('@integer(1,8)')
+        list.push(Mock.mock({
+          id: '@id',
+          price: '@float(100,300,2,2)',
+          name: '@ctitle(10,20)',
+          desc: '@ctitle(6,8)',
+          picture: `http://zhoushugang.gitee.io/erabbit-client-pc-static/uploads/fresh_goods_${num}.jpg`
+        }))
+      }
+    }
+    return {
+      msg: '查询二级分类商品列表成功',
+      result: {
+        page,
+        pageSize,
+        items: list
+      }
+    }
   }
 
 }

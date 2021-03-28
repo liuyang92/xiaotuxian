@@ -7,6 +7,7 @@ export default {
     // 需要得到插槽中的所有内容
     // console.log(this.$slots.default())
     const items = this.$slots.default()
+    // console.log(items)
     const arr = []
     items.forEach((item, index) => {
       arr.push(item)

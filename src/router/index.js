@@ -3,6 +3,7 @@ const Layout = () => import('@/views/Layout')
 const Home = () => import('@/views/home')
 const TopCategory = () => import('@/views/category')
 const subCategory = () => import('@/views/category/sub')
+const Goods = () => import('@/views/goods')
 const routes = [
   {
     path: '/',
@@ -10,7 +11,8 @@ const routes = [
     children: [
       { path: '/', component: Home },
       { path: '/category/:id', component: TopCategory },
-      { path: '/category/sub/:id', component: subCategory }
+      { path: '/category/sub/:id', component: subCategory },
+      { path: '/product/:id', component: Goods }
     ]
   }
 ]
@@ -20,7 +22,10 @@ const router = createRouter({
   // 使用hash方式实现路由
   history: createWebHashHistory(),
   // 路由规则
-  routes
+  routes,
+  scrollBehavior (to, from, savedPosition) {
+    return { top: 0, left: 0 }
+  }
 })
 
 export default router
