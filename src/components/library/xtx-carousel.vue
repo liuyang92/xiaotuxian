@@ -1,20 +1,28 @@
 <template>
-  <div class='xtx-carousel' @mouseenter="stop" @mouseleave="start">
+  <div class='xtx-carousel' @mouseenter="end()" @mouseleave="start()">
     <ul class="carousel-body">
-      <li class="carousel-item" v-for="(item,i) in sliders" :key="i" :class="{fade:index===i}">
-        <RouterLink :to="item.hrefUrl">
+      <li class="carousel-item" :class="{fade:index===i}" v-for="(item,i) in sliders" :key="item.id">
+        <!-- 图片 -->
+        <RouterLink v-if="item.imgUrl" :to="item.hrefUrl">
           <img :src="item.imgUrl" alt="">
         </RouterLink>
+        <!-- 商品 -->
+        <div v-else class="slider">
+          <RouterLink v-for="goods in item" :key="goods.id" :to="`/product/${goods.id}`">
+            <img :src="goods.picture" alt="">
+            <p class="name ellipsis">{{goods.name}}</p>
+            <p class="price">&yen;{{goods.price}}</p>
+          </RouterLink>
+        </div>
       </li>
     </ul>
     <a @click="toggle(-1)" href="javascript:;" class="carousel-btn prev"><i class="iconfont icon-angle-left"></i></a>
-    <a @click="toggle(1)" href="javascript:;" class="carousel-btn next"><i class="iconfont icon-angle-right"></i></a>
+    <a  @click="toggle(1)" href="javascript:;" class="carousel-btn next"><i class="iconfont icon-angle-right"></i></a>
     <div class="carousel-indicator">
-      <span @click="index=i" v-for="(item,i) in sliders" :key="i" :class="{active:index===i}"></span>
+      <span @click="index=i" :class="{active:index===i}" v-for="(item,i) in sliders" :key="item.id"></span>
     </div>
   </div>
 </template>
-
 <script>
 export default {
   name: 'XtxCarousel',
@@ -23,69 +31,67 @@ export default {
       type: Array,
       default: () => []
     },
+    // 轮播间隔时长
+    duration: {
+      type: Number,
+      default: 3000
+    },
     // 是否自动播放
     autoPlay: {
       type: Boolean,
       default: false
-    },
-    duration: {
-      type: Number,
-      default: 3000
-    }
-  },
-  watch: {
-    sliders (newVal, oldVal) {
-      if (newVal.length) {
-        // 开启自动轮播
-        this.autoPlay && this.autoPlayFn()
-      }
     }
   },
   data () {
+    // 通过索引切换轮播图，默认是第一张，索引是0
     return {
       index: 0
     }
   },
-  // vue3.0 的钩子，销毁时候执行
-  beforeUnmount () {
-    if (this.timer) window.clearInterval(this.timer)
+  watch: {
+    sliders (newVal, oldVal) {
+      if (newVal && newVal.length) {
+        // 控制自动播放
+        this.autoPlay && this.autoPlayFn()
+      }
+    }
   },
   methods: {
-    // 自动播放
-    autoPlayFn () {
+    end () {
       clearInterval(this.timer)
-      this.timer = window.setInterval(() => {
-        if ((this.index + 1) >= (this.sliders.length)) {
-          this.index = 0
-        } else {
-          this.index++
-        }
-      }, this.duration)
     },
-    // 切换图片
+    start () {
+      this.autoPlay && this.autoPlayFn()
+    },
+    // 切换上一张下一张
     toggle (step) {
       this.index += step
       if (this.index < 0) {
         this.index = this.sliders.length - 1
-        return
       }
       if (this.index >= this.sliders.length) {
         this.index = 0
       }
     },
-    // 鼠标悬停,停止轮播图
-    stop () {
+    // 自动播放
+    autoPlayFn () {
+      // 定一个定时器，隔一段时间去，切换一下索引
       clearInterval(this.timer)
-    },
-    // 鼠标离开,开始轮播
-    start () {
-      this.autoPlay && this.sliders.length && this.autoPlayFn()
+      this.timer = setInterval(() => {
+        this.index++
+        if (this.index >= this.sliders.length) {
+          this.index = 0
+        }
+      }, this.duration)
     }
+  },
+  // vue3.0 的钩子，销毁时候执行
+  beforeUnmount () {
+    if (this.timer) window.clearInterval(this.timer)
   }
 }
 </script>
-
-<style scoped lang='less'>
+<style scoped lang="less">
 .xtx-carousel{
   width: 100%;
   height: 100%;
@@ -149,9 +155,9 @@ export default {
       line-height: 44px;
       opacity: 0;
       transition: all 0.5s;
-    //   &.prev{
-    //     left: 20px;
-    //   }
+      &.prev{
+        left: 20px;
+      }
       &.next{
         right: 20px;
       }
@@ -160,6 +166,31 @@ export default {
   &:hover {
     .carousel-btn {
       opacity: 1;
+    }
+  }
+}
+// 轮播商品
+.slider {
+  display: flex;
+  justify-content: space-around;
+  padding: 0 40px;
+  > a {
+    width: 240px;
+    text-align: center;
+    img {
+      padding: 20px;
+      width: 230px!important;
+      height: 230px!important;
+    }
+    .name {
+      font-size: 16px;
+      color: #666;
+      padding: 0 40px;
+    }
+    .price {
+      font-size: 16px;
+      color: @priceColor;
+      margin-top: 15px;
     }
   }
 }

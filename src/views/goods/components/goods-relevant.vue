@@ -1,17 +1,107 @@
 <template>
-  <div class='goods-relevant'></div>
+  <div class="goods-relevant">
+    <div class="header">
+      <i class="icon" />
+      <span class="title">{{ goodsId ? "同类商品推荐" : "猜你喜欢" }}</span>
+    </div>
+    <!-- 此处使用改造后的xtx-carousel.vue -->
+    <xtx-carousel
+      style="height:380px"
+      auto-play
+      :sliders="goodsList"
+    ></xtx-carousel>
+  </div>
 </template>
 
 <script>
+import { findRelevantOrLike } from '@/api/goods'
+import { ref } from 'vue'
 export default {
-  name: 'GoodsRelevant'
+  // 同类推荐，猜你喜欢
+  name: 'GoodsRelevant',
+  props: {
+    goodsId: {
+      type: String,
+      default: ''
+    }
+  },
+  setup (props) {
+    // 1. 基础布局和结构需要了解
+    // 2. 区分实现的是 商品推荐 或者 猜你喜欢 （通过是否传人商品ID）
+    // 3. 获取后台的数据（mock一下）
+    // 4. 后台数据结构调整 [16条] ====> [[4条],[4条],[4条],[4条]]
+    // 5. 再xtx-carousel组件使用，区分展示商品列表
+    // 6. 添加对商品列表的样式
+    // 7. 对xt-carousel组件样式覆盖
+    const goodsList = ref([])
+    findRelevantOrLike({ id: props.goodsId }).then(data => {
+      const pageSize = 4
+      const pages = Math.ceil(data.result.length / pageSize)
+      const arr = []
+      for (let i = 0; i < pages; i++) {
+        arr.push(data.result.slice(i * pageSize, (i + 1) * pageSize))
+      }
+      goodsList.value = arr
+      // console.log(goodsList)
+    })
+    return { goodsList }
+  }
 }
 </script>
 
-<style scoped lang='less'>
+<style scoped lang="less">
 .goods-relevant {
   background: #fff;
   min-height: 460px;
   margin-top: 20px;
+  .header {
+    height: 80px;
+    line-height: 80px;
+    padding: 0 20px;
+    .title {
+      font-size: 20px;
+      padding-left: 10px;
+    }
+    .icon {
+      width: 16px;
+      height: 16px;
+      display: inline-block;
+      border-top: 4px solid @xtxColor;
+      border-right: 4px solid @xtxColor;
+      box-sizing: border-box;
+      position: relative;
+      transform: rotate(45deg);
+      &::before {
+        content: "";
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        left: 0;
+        top: 2px;
+        background: lighten(@xtxColor, 40%);
+      }
+    }
+  }
+}
+::v-deep .xtx-carousel {
+  .carousel {
+    &-indicator {
+      bottom: 30px;
+      span {
+        &.active {
+          background: @xtxColor;
+        }
+      }
+    }
+    &-btn {
+      top: 110px;
+      opacity: 1;
+      background: rgba(0, 0, 0, 0);
+      color: #ddd;
+      i {
+        font-size: 30px;
+      }
+    }
+  }
 }
 </style>

@@ -58,12 +58,16 @@ export default {
     goods: {
       type: Object,
       default: () => ({ specs: [], skus: [] })
+    },
+    skuId: {
+      type: String,
+      default: () => ('')
     }
   },
-  setup (prop) {
+  setup (props, { emit }) {
     // console.log(prop)
     //   生成路径字典
-    const pathMap = getPathMap(prop.goods.skus)
+    const pathMap = getPathMap(props.goods.skus)
     // console.log(pathMap)
     // 获得当前选中状态的值得数组,即使没选中也要准备好
     const getSelectedVal = (specs) => {
@@ -94,7 +98,19 @@ export default {
       })
     }
     // 初始化更新禁用状态
-    updateItemStatus(prop.goods.specs)
+    updateItemStatus(props.goods.specs)
+    // 通讯功能1.接收父组件shuid,默认激活按钮
+    if (props.skuId) {
+      const sku = props.goods.skus.find(sku => sku.id === props.skuId)
+      props.goodsspecs.forEach((spec, i) => {
+        spec.values.forEach(val => {
+          if (val.name === sku.specs[i].valueName) {
+            val.selected = true
+          }
+        })
+      })
+    }
+
     // 选中状态切换函数
     /**
      * 1 假设每个按钮都有一个selected属性,为true时为选中,false时取消选中(初始化时都为false,全部不选中)
@@ -115,7 +131,26 @@ export default {
         val.selected = true
       }
       //   点击按钮时,更新其他按钮状态
-      updateItemStatus(prop.goods.specs)
+      updateItemStatus(props.goods.specs, pathMap)
+      // 通讯功能2  当规格选择完毕.通知父组件(skuId,price,oldprice,stock,attrsText)
+      // 其他情况:{}
+      const selectedArr = getSelectedVal(props.goods.specs)
+      const validSelectedArr = selectedArr.filter(val => val)
+      if (validSelectedArr.length === props.goods.specs.length) {
+        const skuIds = pathMap[validSelectedArr.join(spliter)]
+        const sku = props.goods.skus.find(sku => sku.id === skuIds[0])
+        // 选完
+        emit('change', {
+          skuId: sku.id,
+          price: sku.price,
+          oldPrice: sku.oldPrice,
+          stock: sku.inventory,
+          attrsText: sku.specs.reduce((p, c) => (p += `${c.name}:${c.valueName}`), '').trim()
+        })
+      } else {
+        // 没有
+        emit('change', {})
+      }
     }
     return { changeSku }
   }

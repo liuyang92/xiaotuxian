@@ -2,6 +2,7 @@
 import Mock from 'mockjs'
 import category from './category'
 import home from './home'
+import goods from './goods'
 
 // mock设置
 Mock.setup({
@@ -24,3 +25,5 @@ Mock.mock(/\/home\/special\.*/, 'get', home.special)
 Mock.mock(/\/category\/sub\/filter/, 'get', category.filter)
 Mock.mock(/\/category/, 'get', category.topCategory)
 Mock.mock(/\/category\/goods/, 'post', category.goods)
+Mock.mock(/\/goods\/relevant/, 'get', goods.relevant)
+Mock.mock(/\/goods\/hot/, 'get', goods.hot)

@@ -38,6 +38,7 @@ export default {
   },
   setup (props) {
     // 默认情况
+    // console.log(props.goods.price)
     const provinceCode = ref('110000')
     const cityCode = ref('119900')
     const countyCode = ref('110101')

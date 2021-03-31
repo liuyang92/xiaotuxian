@@ -1,9 +1,13 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
+
 const Layout = () => import('@/views/Layout')
 const Home = () => import('@/views/home')
 const TopCategory = () => import('@/views/category')
-const subCategory = () => import('@/views/category/sub')
+const SubCategory = () => import('@/views/category/sub')
 const Goods = () => import('@/views/goods')
+
+const Login = () => import('@/views/login')
+
 const routes = [
   {
     path: '/',
@@ -11,17 +15,18 @@ const routes = [
     children: [
       { path: '/', component: Home },
       { path: '/category/:id', component: TopCategory },
-      { path: '/category/sub/:id', component: subCategory },
+      { path: '/category/sub/:id', component: SubCategory },
       { path: '/product/:id', component: Goods }
     ]
-  }
+  },
+  { path: '/login', component: Login }
 ]
 
-// 路由实例（vue2.0用new vue,3.0用createRouter）
+// 创建路由实例
 const router = createRouter({
   // 使用hash方式实现路由
   history: createWebHashHistory(),
-  // 路由规则
+  // 配置路由规则，写法和之前一样
   routes,
   scrollBehavior (to, from, savedPosition) {
     return { top: 0, left: 0 }

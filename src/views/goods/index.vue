@@ -23,21 +23,27 @@
           <!-- 名字区组件 -->
           <GoodsName :goods="goods" />
           <!-- sku 数量等选项 -->
-          <GoodsSku :goods="goods" />
+          <GoodsSku @change="changeSku" :goods="goods" />
+          <XtxNumbox  v-model="count" label='数量' :max='goods.inventory'/>
+                 <!-- 按钮组件 -->
+          <XtxButton  type='primary' style="margin-top:20px">加入购物车</XtxButton>
         </div>
       </div>
       <!-- 商品推荐 -->
-      <GoodsRelevant />
+      <GoodsRelevant  :goodsId="goods.id" />
       <!-- 商品详情 -->
       <div class="goods-footer">
         <div class="goods-article">
           <!-- 商品+评价 -->
-          <div class="goods-tabs"></div>
+          <GoodsTabs :goods="goods" />
           <!-- 注意事项 -->
-          <div class="goods-warn"></div>
+          <GoodsWarn />
         </div>
         <!-- 24热榜+专题推荐 -->
-        <div class="goods-aside"></div>
+        <div class="goods-aside">
+          <GoodsHot :goodsId="goods.id" :type="1" />
+          <GoodsHot :goodsId="goods.id" :type="2" />
+        </div>
       </div>
     </div>
   </div>
@@ -51,8 +57,12 @@ import GoodsSales from './components/goods-sales'
 import GoodsName from './components/goods-name'
 import { findGoods } from '@/api/goods'
 import { useRoute } from 'vue-router'
-import { ref } from 'vue'
+import { provide, ref } from 'vue'
 import GoodsSku from './components/goods-sku.vue'
+import GoodsTabs from './components/goods-tabs'
+import GoodsHot from './components/goods-hot'
+import GoodsWarn from './components/goods-warn'
+
 // 得到商品详情数据
 const useGoodsData = () => {
   const route = useRoute()
@@ -67,11 +77,29 @@ const useGoodsData = () => {
 }
 export default {
   name: 'XtxGoodsPage',
-  components: { GoodsRelevant, GoodsImage, GoodsSales, GoodsName, GoodsSku },
+  components: { GoodsRelevant, GoodsImage, GoodsSales, GoodsName, GoodsSku, GoodsTabs, GoodsHot, GoodsWarn },
   setup () {
     const { goods } = useGoodsData()
     // console.log(goods)
-    return { goods }
+    // 选择了规格
+    // 选择规格
+    const skuId = ref(null)
+    const changeSku = (sku) => {
+      if (sku.skuId) {
+        skuId.value = sku.skuId
+        goods.value.price = sku.price
+        goods.value.oldPrice = sku.oldPrice
+        goods.value.inventory = sku.stock
+      } else {
+        sku.value = null
+      }
+    }
+    // 选择数量
+    const count = ref(1)
+    // setup注入数据，提供个子孙组件
+    provide('goods', goods)
+
+    return { goods, changeSku, count }
   }
 }
 </script>
@@ -108,10 +136,7 @@ export default {
     min-height: 1000px;
   }
 }
-.goods-tabs {
-  min-height: 600px;
-  background: #fff;
-}
+
 .goods-warn {
   min-height: 600px;
   background: #fff;
