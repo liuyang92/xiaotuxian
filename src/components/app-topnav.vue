@@ -4,9 +4,9 @@
       <ul>
         <template v-if="profile.token">
           <li>
-            <a href="javascript:;"><i class="iconfont icon-user"></i>
+            <RouterLink to="/member"><i class="iconfont icon-user"></i>
               {{profile.nickname||profile.account}}
-            </a>
+            </RouterLink>
           </li>
           <li><a @click="logout()" href="javascript:;">退出登录</a></li>
         </template>
@@ -14,7 +14,7 @@
           <li><RouterLink to="/login">请先登录</RouterLink></li>
           <li><a href="javascript:;">免费注册</a></li>
         </template>
-        <li><a href="javascript:;">我的订单</a></li>
+        <li><RouterLink to="/member/order">我的订单</RouterLink></li>
         <li><a href="javascript:;">会员中心</a></li>
         <li><a href="javascript:;">帮助中心</a></li>
         <li><a href="javascript:;">关于我们</a></li>
@@ -33,8 +33,12 @@ export default {
   },
   methods: {
     ...mapMutations('user', ['setUser']),
+    ...mapMutations('cart', ['setCartList']),
     logout () {
+      // 清空用户信息
       this.setUser({})
+      // 清空购物车信息
+      this.setCartList([])
       this.$router.push('/login')
     }
   }

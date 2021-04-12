@@ -1,16 +1,12 @@
 <template>
-  <div class="xtx-goods-page" v-if="goods">
+  <div class='xtx-goods-page' v-if="goods">
     <div class="container">
       <!-- 面包屑 -->
       <XtxBread>
         <XtxBreadItem to="/">首页</XtxBreadItem>
-        <XtxBreadItem :to="'/category/' + goods.categories[2].id">{{
-          goods.categories[2].name
-        }}</XtxBreadItem>
-        <XtxBreadItem :to="'/category/sub/' + goods.categories[1].id">{{
-          goods.categories[1].name
-        }}</XtxBreadItem>
-        <XtxBreadItem to="/">{{ goods.name }}</XtxBreadItem>
+        <XtxBreadItem :to="'/category/'+goods.categories[2].id">{{goods.categories[2].name}}</XtxBreadItem>
+        <XtxBreadItem :to="'/category/sub/'+goods.categories[1].id">{{goods.categories[1].name}}</XtxBreadItem>
+        <XtxBreadItem to="/">{{goods.name}}</XtxBreadItem>
       </XtxBread>
       <!-- 商品信息 -->
       <div class="goods-info">
@@ -22,20 +18,21 @@
         <div class="spec">
           <!-- 名字区组件 -->
           <GoodsName :goods="goods" />
-          <!-- sku 数量等选项 -->
-          <GoodsSku @change="changeSku" :goods="goods" />
-          <XtxNumbox  v-model="count" label='数量' :max='goods.inventory'/>
-                 <!-- 按钮组件 -->
-          <XtxButton  type='primary' style="margin-top:20px">加入购物车</XtxButton>
+          <!-- 规格组件 -->
+          <GoodsSku :goods="goods" @change="changeSku" />
+          <!-- 数量组件 -->
+          <XtxNumbox label="数量" v-model="count" :max="goods.inventory" />
+          <!-- 按钮组件 -->
+          <XtxButton @click="insertCart()" type="primary" style="margin-top:20px">加入购物车</XtxButton>
         </div>
       </div>
       <!-- 商品推荐 -->
-      <GoodsRelevant  :goodsId="goods.id" />
+      <GoodsRelevant :goodsId="goods.id" />
       <!-- 商品详情 -->
       <div class="goods-footer">
         <div class="goods-article">
           <!-- 商品+评价 -->
-          <GoodsTabs :goods="goods" />
+          <GoodsTabs :goods="goods"/>
           <!-- 注意事项 -->
           <GoodsWarn />
         </div>
@@ -55,14 +52,15 @@ import GoodsRelevant from './components/goods-relevant'
 import GoodsImage from './components/goods-image'
 import GoodsSales from './components/goods-sales'
 import GoodsName from './components/goods-name'
-import { findGoods } from '@/api/goods'
-import { useRoute } from 'vue-router'
-import { provide, ref } from 'vue'
-import GoodsSku from './components/goods-sku.vue'
+import GoodsSku from './components/goods-sku'
 import GoodsTabs from './components/goods-tabs'
 import GoodsHot from './components/goods-hot'
 import GoodsWarn from './components/goods-warn'
-
+import { findGoods } from '@/api/goods'
+import { useRoute } from 'vue-router'
+import { provide, ref } from 'vue'
+import Message from '@/components/library/Message'
+import { useStore } from 'vuex'
 // 得到商品详情数据
 const useGoodsData = () => {
   const route = useRoute()
@@ -70,6 +68,15 @@ const useGoodsData = () => {
   if (route.params.id) {
     // 说有的商品跳转过来，获取这个商品（只有一个商品）
     findGoods('1369155859933827074').then(({ result }) => {
+      // 处理specs与skus中的specs顺序不一致
+      result.skus.forEach(sku => {
+        const sortSpecs = []
+        result.specs.forEach(spec => {
+          sortSpecs.push(sku.specs.find(item => item.name === spec.name))
+        })
+        sku.specs = sortSpecs
+      })
+      console.log(result)
       goods.value = result
     })
   }
@@ -80,8 +87,7 @@ export default {
   components: { GoodsRelevant, GoodsImage, GoodsSales, GoodsName, GoodsSku, GoodsTabs, GoodsHot, GoodsWarn },
   setup () {
     const { goods } = useGoodsData()
-    // console.log(goods)
-    // 选择了规格
+
     // 选择规格
     const skuId = ref(null)
     const changeSku = (sku) => {
@@ -90,25 +96,54 @@ export default {
         goods.value.price = sku.price
         goods.value.oldPrice = sku.oldPrice
         goods.value.inventory = sku.stock
+        goods.value.attrsText = sku.attrsText
       } else {
-        sku.value = null
+        skuId.value = null
       }
     }
     // 选择数量
     const count = ref(1)
+
     // setup注入数据，提供个子孙组件
     provide('goods', goods)
 
-    return { goods, changeSku, count }
+    const store = useStore()
+    // 加入购物车
+    const insertCart = () => {
+      // 1. 验证选择规格完整
+      if (!skuId.value) return Message({ text: '请选择完整规格' })
+      // 2. 准备购物车需要的goods信息对象
+      const cartGoods = {
+        id: goods.value.id,
+        name: goods.value.name,
+        picture: goods.value.mainPictures[0],
+        price: goods.value.price,
+        nowPrice: goods.value.price,
+        count: count.value,
+        skuId: skuId.value,
+        attrsText: goods.value.attrsText,
+        stock: goods.value.inventory,
+        selected: true,
+        isEffective: true
+      }
+      // 3. 使用actions进行添加
+      store.dispatch('cart/insertCart', cartGoods).then(() => {
+        Message({ type: 'success', text: '加入购物车成功' })
+      }).catch(e => {
+        Message({ type: 'error', text: '加入购物车失败' })
+      })
+    }
+
+    return { goods, changeSku, count, insertCart }
   }
 }
 </script>
 
-<style scoped lang="less">
+<style scoped lang='less'>
 .loading {
   margin-top: 72px;
   height: 600px;
-  background: #fff url(../../assets/images/loading.gif) no-repeat center;
+  background:#fff url(../../assets/images/loading.gif) no-repeat center;
 }
 .goods-info {
   min-height: 600px;
@@ -136,10 +171,13 @@ export default {
     min-height: 1000px;
   }
 }
-
-.goods-warn {
-  min-height: 600px;
-  background: #fff;
-  margin-top: 20px;
-}
+// .goods-tabs {
+//   min-height: 600px;
+//   background: #fff;
+// }
+// .goods-warn {
+//   min-height: 600px;
+//   background: #fff;
+//   margin-top: 20px;
+// }
 </style>

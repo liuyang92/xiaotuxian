@@ -21,11 +21,17 @@ import LoginHeader from './components/login-header'
 import LoginFooter from './components/login-footer'
 import LoginForm from './components/login-form'
 import { ref } from 'vue'
+import { useStore } from 'vuex'
+import { useRoute } from 'vue-router'
 export default {
   name: 'PageLogin',
   components: { LoginHeader, LoginFooter, LoginForm },
   setup () {
     const activeName = ref('account')
+    // 存储回调地址，提供将来QQ回调页使用
+    const store = useStore()
+    const route = useRoute()
+    store.commit('user/setRedirectUrl', route.query.redirectUrl)
     return { activeName }
   }
 }

@@ -12,13 +12,19 @@ export default {
         avatar: '',
         mobile: '',
         token: ''
-      }
+      },
+      // 回跳地址
+      redirectUrl: ''
     }
   },
   mutations: {
     // 将来登录成功，传人用户信息对象
     setUser (state, profile) {
       state.profile = profile
+    },
+    // 设置回跳地址
+    setRedirectUrl (state, url) {
+      state.redirectUrl = url
     }
   }
 }

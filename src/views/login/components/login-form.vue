@@ -73,7 +73,9 @@
       <a @click="submit()" href="javascript:;" class="btn">登录</a>
     </Form>
     <div class="action">
-      <img src="https://qzonestyle.gtimg.cn/qzone/vas/opensns/res/img/Connect_logo_7.png" alt="">
+      <a href="https://graph.qq.com/oauth2.0/authorize?client_id=100556005&response_type=token&scope=all&redirect_uri=http%3A%2F%2Fwww.corho.com%3A8080%2F%23%2Flogin%2Fcallback" >
+        <img src="https://qzonestyle.gtimg.cn/qzone/vas/opensns/res/img/Connect_logo_7.png" alt="">
+      </a>
       <div class="url">
         <a href="javascript:;">忘记密码</a>
         <a href="javascript:;">免费注册</a>
@@ -96,10 +98,18 @@ import { userAccountLogin, userMobileLogin, userMobileLoginCode } from '@/api/us
 import Message from '@/components/library/Message'
 import { useStore } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
+// import QC from 'qc'
 export default {
   name: 'LoginForm',
   components: { Form, Field },
   setup () {
+    // onMounted(() => {
+    //   // 组件渲染完毕，使用QC生成QQ登录按钮
+    //   QC.Login({
+    //     btnId: 'qqLoginBtn'
+    //   })
+    // })
+
     // 控制短信登录切换的
     const isMsgLogin = ref(false)
     // 表单对象数据
@@ -161,10 +171,13 @@ export default {
         // 1. 存储信息
         const { id, account, nickname, avatar, token, mobile } = data.result
         store.commit('user/setUser', { id, account, nickname, avatar, token, mobile })
-        // 2. 提示
-        Message({ type: 'success', text: '登录成功' })
-        // 3. 跳转
-        router.push(route.query.redirectUrl || '/')
+        // 合并购物车操作
+        store.dispatch('cart/mergeLocalCart').then(() => {
+          // 2. 提示
+          Message({ type: 'success', text: '登录成功' })
+          // 3. 跳转
+          router.push(route.query.redirectUrl || '/')
+        })
       }
     }
 

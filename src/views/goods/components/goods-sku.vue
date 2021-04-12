@@ -1,22 +1,11 @@
 <template>
   <div class="goods-sku">
     <dl v-for="spec in goods.specs" :key="spec.id">
-      <dt>{{ spec.name }}</dt>
+      <dt>{{spec.name}}</dt>
       <dd>
         <template v-for="val in spec.values" :key="val.name">
-          <img
-            :class="{ selected: val.selected,disabled:val.disabled }"
-            @click="changeSku(spec.values, val)"
-            v-if="val.picture"
-            :src="val.picture"
-            alt=""
-          />
-          <span
-            :class="{ selected: val.selected ,disabled:val.disabled}"
-            @click="changeSku(spec.values, val)"
-            v-else
-            >{{ val.name }}</span
-          >
+          <img :class="{selected:val.selected,disabled:val.disabled}" @click="changeSku(spec.values,val)" v-if="val.picture" v-lazyload="val.picture" :title="val.name">
+          <span :class="{selected:val.selected,disabled:val.disabled}" @click="changeSku(spec.values,val)" v-else>{{val.name}}</span>
         </template>
       </dd>
     </dl>
@@ -24,33 +13,57 @@
 </template>
 <script>
 import powerSet from '@/vender/power-set'
-// 根据现有sku计算出所有可以走的路径集合
-const spliter = '☆'
-const getPathMap = skus => {
+// 根据现有skus数据得到可以走的路径集合
+const spliter = '★'
+const getPathMap = (skus) => {
   const pathMap = {}
-  //   console.log('skus', skus)
   skus.forEach(sku => {
-    //   过滤无效sku
+    // 1. 过滤无效sku
     if (sku.inventory > 0) {
-      // 得到sku的值数组
+      // 2. 得到sku的值数组
       const valueArr = sku.specs.map(spec => spec.valueName)
-      //   console.log(valueArr)
-      //  得到sku值得子集
+      // 3. 得到sku值的子集
       const subSets = powerSet(valueArr)
-      //   console.log(subSets)
-      //   遍历数组,将每个选项以☆拼接成字符串作为pathMap的key
+      // 4. 遍历子集，将每个选项以★拼接成字符串作为pathMap的key
       subSets.forEach(subSet => {
         const key = subSet.join(spliter)
+        // 5. 设置给字典对象
         if (pathMap[key]) {
+          // 已经有key
           pathMap[key].push(sku.id)
         } else {
+          // 没有key
           pathMap[key] = [sku.id]
         }
       })
     }
   })
-  //   console.log(pathMap)
   return pathMap
+}
+// 获取当前选择的值的数组，即使没选中也需要留坑
+const getSelectedVal = (specs) => {
+  const arr = []
+  specs.forEach(spec => {
+    const selectedVal = spec.values.find(val => val.selected)
+    arr.push(selectedVal ? selectedVal.name : undefined)
+  })
+  return arr
+}
+// 更新所有按钮状态的方法，约定每一个按钮有disabled状态
+const updateItemStatus = (specs, pathMap) => {
+  specs.forEach((spec, i) => {
+    // 获取当前选中的值数组
+    const selectedArr = getSelectedVal(specs)
+    spec.values.forEach(val => {
+      // 已经选中跳过判断
+      if (val.name === selectedArr[i]) return false
+      // 将按钮代入数组
+      selectedArr[i] = val.name
+      // 剔除无用属性值，去拼接五角星，得到key
+      const key = selectedArr.filter(item => item).join(spliter)
+      val.disabled = !pathMap[key]
+    })
+  })
 }
 export default {
   name: 'GoodsSku',
@@ -61,48 +74,17 @@ export default {
     },
     skuId: {
       type: String,
-      default: () => ('')
+      default: ''
     }
   },
   setup (props, { emit }) {
-    // console.log(prop)
-    //   生成路径字典
+    // 获取路径字典
     const pathMap = getPathMap(props.goods.skus)
-    // console.log(pathMap)
-    // 获得当前选中状态的值得数组,即使没选中也要准备好
-    const getSelectedVal = (specs) => {
-      const arr = []
-      specs.forEach(spec => {
-        //   查找选项里面是有有已经选中的,有返回true,没有返回false
-        const selectedVal = spec.values.find(val => val.selected)
-        // const selectedVal = null
-        // arr里面放入结果,有的话放入name,没有的话放入undefined
-        arr.push(selectedVal ? selectedVal.name : undefined)
-      })
-      return arr
-    }
-    // 更新所有按钮状态的方法
-    const updateItemStatus = specs => {
-      specs.forEach((spec, i) => {
-        const selectedArr = getSelectedVal(specs)
-        // console.log(selectedArr)
-        spec.values.forEach(val => {
-          // 如果激活,跳过判断
-          if (val.selected) return false
-          //   将按钮带入数组
-          selectedArr[i] = val.name
-          //   提出无用属性值,拼接五角星,得到key
-          const key = selectedArr.filter(item => item).join(spliter)
-          val.disabled = !pathMap[key]
-        })
-      })
-    }
-    // 初始化更新禁用状态
-    updateItemStatus(props.goods.specs)
-    // 通讯功能1.接收父组件shuid,默认激活按钮
+
+    // 通讯功能1：接收父组件skuId，默认激活按钮
     if (props.skuId) {
       const sku = props.goods.skus.find(sku => sku.id === props.skuId)
-      props.goodsspecs.forEach((spec, i) => {
+      props.goods.specs.forEach((spec, i) => {
         spec.values.forEach(val => {
           if (val.name === sku.specs[i].valueName) {
             val.selected = true
@@ -111,29 +93,30 @@ export default {
       })
     }
 
-    // 选中状态切换函数
-    /**
-     * 1 假设每个按钮都有一个selected属性,为true时为选中,false时取消选中(初始化时都为false,全部不选中)
-     * 2 如果点击时已选中,则取消选中
-     * 3 否则点击时为没选中,则全部按钮都取消选中,然后给点击的按钮改为选中(true)
-     */
+    // 初始化更新禁用状态
+    updateItemStatus(props.goods.specs, pathMap)
+
+    // 约定每一个按钮拥有一个selected属性标识选中和取消
     const changeSku = (values, val) => {
-      // 禁用状态,阻止行为
+      // 禁用状态，阻止行为
       if (val.disabled) return false
-      // 如果点击时已经选中,取反
+      // 1. 选中与取消选中
       if (val.selected) {
+        // 1. 自己已经选中，自己取消
         val.selected = false
       } else {
-        // 如果没选中,别人全部取消,自己选中
+        // 2. 自己没有选中，别人全部取消选中，自己选中
         values.forEach(val => {
           val.selected = false
         })
         val.selected = true
       }
-      //   点击按钮时,更新其他按钮状态
+      // 点击按钮，更新其他按钮状态
       updateItemStatus(props.goods.specs, pathMap)
-      // 通讯功能2  当规格选择完毕.通知父组件(skuId,price,oldprice,stock,attrsText)
-      // 其他情况:{}
+
+      // 通讯功能2：
+      // 当规格选择完毕通知父组件：{skuId,price,oldPrice,stock,attrsText}
+      // 其他情况：{}
       const selectedArr = getSelectedVal(props.goods.specs)
       const validSelectedArr = selectedArr.filter(val => val)
       if (validSelectedArr.length === props.goods.specs.length) {
@@ -145,7 +128,7 @@ export default {
           price: sku.price,
           oldPrice: sku.oldPrice,
           stock: sku.inventory,
-          attrsText: sku.specs.reduce((p, c) => (p += `${c.name}:${c.valueName}`), '').trim()
+          attrsText: sku.specs.reduce((p, c) => (p += `${c.name}：${c.valueName} `), '').trim()
         })
       } else {
         // 没有
